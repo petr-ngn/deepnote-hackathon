@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import random
 from config import set_page_config, inject_css
 import json  # added import for json handling
-
+import base64
 # Set page configuration and inject custom CSS
 set_page_config()
 inject_css()
@@ -200,7 +200,17 @@ def main():
         return
 
     st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
-
+    for file in uploaded:
+        bytes_data = file.read()
+        base64_bytes = base64.b64encode(bytes_data).decode('utf-8')
+        with st.expander(f"File: {file.name}", expanded=False):
+            st.markdown(
+                                f'''
+                                <iframe src="data:application/pdf;base64,{base64_bytes}#zoom=3.0" 
+                                width="500" height="600" type="application/pdf"></iframe>
+                                ''',
+                                unsafe_allow_html=True      
+            )
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
     
@@ -215,10 +225,7 @@ def main():
         st.error(f"Failed to upload raw analysis file: {e}")
     
     # Display each result in a card with expandable details
-    for filename, result in results:
-        display_name = "_".join(filename.split("_")[1:])
-        with st.expander(f"File: {display_name}", expanded=False):
-            st.write("Details hidden")
+
 
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',

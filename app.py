@@ -204,17 +204,7 @@ def main():
         with ThreadPoolExecutor() as ex:
             results = list(ex.map(process_file, uploaded))
     st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
-    for file in uploaded:
-        bytes_data = file.read()
-        base64_bytes = base64.b64encode(bytes_data).decode('utf-8')
-        with st.expander(f"File: {file.name}", expanded=False):
-            st.markdown(
-                                f'''
-                                <iframe src="data:application/pdf;base64,{base64_bytes}#zoom=3.0" 
-                                width="500" height="600" type="application/pdf"></iframe>
-                                ''',
-                                unsafe_allow_html=True
-            )
+
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
 

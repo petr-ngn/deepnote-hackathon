@@ -192,40 +192,42 @@ def safe_converse(client, payload, max_retries=5, base_delay=1):
     raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
 def main():
-    st.title("OCR Processor (Parallel)")  # Added title within main()
+    st.title("OCR Business Analyser")  # Added title within main()
     uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
     if not uploaded:
         return
 
     # Use native Streamlit info box instead of a CSS card
     st.info(f"📂 {len(uploaded)} file(s) selected. Processing…")
-
-
-    st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
-
-    with ThreadPoolExecutor() as ex:
-        results = list(ex.map(process_file, uploaded))
-
-        for res in results:
-            filename, _ = res
-            print('filename:', filename)
-            print(_)
-            pdf_content = (
-                s3.get_object(
-                    Bucket=BUCKET_NAME,
-                    Key=f"inputs/{filename}",
-                )
-                ['Body'].read()
+    
+    with st.spinner("Uploading files and processing..."):
+        with ThreadPoolExecutor() as ex:
+            results = list(ex.map(process_file, uploaded))
+    
+    with st.spinner("Waiting for analysis results..."):
+        # Placeholder spinner while analysis completes (e.g. polling or waiting)
+        time.sleep(2)
+    
+    for res in results:
+        filename, _ = res
+        print('filename:', filename)
+        print(_)
+        pdf_content = (
+            s3.get_object(
+                Bucket=BUCKET_NAME,
+                Key=f"inputs/{filename}",
             )
-            base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
+            ['Body'].read()
+        )
+        base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
 
-            with st.expander(f"File: {filename}", expanded=False):
-                st.markdown(
-    f'''
-    <iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25" 
-    width="500" height="600" type="application/pdf"></iframe>
-    ''',
-    unsafe_allow_html=True
+        with st.expander(f"File: {filename}", expanded=False):
+            st.markdown(
+f'''
+<iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25" 
+width="500" height="600" type="application/pdf"></iframe>
+''',
+unsafe_allow_html=True
 )
     
     # Save raw analysis results to a local json file and upload to S3

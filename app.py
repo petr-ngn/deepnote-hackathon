@@ -208,27 +208,27 @@ def main():
         # Placeholder spinner while analysis completes (e.g. polling or waiting)
         time.sleep(2)
     
-    for res in results:
-        filename, _ = res
-        print('filename:', filename)
-        print(_)
-        pdf_content = (
-            s3.get_object(
-                Bucket=BUCKET_NAME,
-                Key=f"inputs/{filename}",
-            )
-            ['Body'].read()
-        )
-        base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
-
-        with st.expander(f"File: {filename}", expanded=False):
-            st.markdown(
-f'''
-<iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25" 
-width="500" height="600" type="application/pdf"></iframe>
-''',
-unsafe_allow_html=True
-)
+#     for res in results:
+#         filename, _ = res
+#         print('filename:', filename)
+#         print(_)
+#         pdf_content = (
+#             s3.get_object(
+#                 Bucket=BUCKET_NAME,
+#                 Key=f"inputs/{filename}",
+#             )
+#             ['Body'].read()
+#         )
+#         base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
+#
+#         with st.expander(f"File: {filename}", expanded=False):
+#             st.markdown(
+# f'''
+# <iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25"
+# width="500" height="600" type="application/pdf"></iframe>
+# ''',
+# unsafe_allow_html=True
+# )
     
     # Save raw analysis results to a local json file and upload to S3
     analysis_filename = f"analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.json"

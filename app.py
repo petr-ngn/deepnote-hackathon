@@ -281,9 +281,10 @@ def main():
         st.success(f"Raw analysis file {analysis_filename} uploaded to S3.")
     except Exception as e:
         st.error(f"Failed to upload raw analysis file: {e}")
-    
-    scrape_json = scraper(company_name)
-    scrape_out = summarize_scrape(scrape_json, company_name)
+
+    with st.spinner("Scraping info about company..."):
+        scrape_json = scraper(company_name)
+        scrape_out = summarize_scrape(scrape_json, company_name)
 
     st.write(f"Scraped data summary: {scrape_out}")
     payload = {

@@ -192,7 +192,7 @@ def safe_converse(client, payload, max_retries=5, base_delay=1):
     raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
 def main():
-    st.title("OCR Business Analyser")  # Added title within main()
+    st.title("OCR Company Analyser")  # Added title within main()
     uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
     if not uploaded:
         return

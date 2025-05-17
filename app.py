@@ -38,7 +38,6 @@ def upload_to_s3(file, bucket, filename):
     except Exception as e:
         return False, f"Failed to upload {filename}: {e}"
 
-
 def process_file(file):
     file_id = str(uuid.uuid4())
     filename = f"{file_id}_{file.name}"
@@ -173,7 +172,6 @@ def process_file(file):
     except Exception as e:
         return filename, {"error": str(e)}
 
-
 def main():
     st.title("OCR Processor (Parallel)")
     st.write("Upload your PDFs (rozvaha or vysledovka)")
@@ -187,7 +185,8 @@ def main():
             results = list(executor.map(process_file, uploaded_files))
 
         for filename, result in results:
-            st.subheader(f"Results for {filename}:")
+            new_filename = '_'.join(filename.split('_')[1:])
+            st.subheader(f"Results for {new_filename}:")
             if "error" in result:
                 st.error(result["error"])
             else:
@@ -205,7 +204,7 @@ def main():
                 'maxTokens': 4096,
             },
             'system': [{
-                'text': 'You are a financial analyst. You will be given a list of financial data from a company. Your task is to analyze the data and provide insights.'
+                'text': 'You are a financial analyst. You will be given a list of financial data from a company. Your task is to analyze the data and provide insights whether the company will be a luqid and profitable b2b partner for us. Will he pay invoices, isnt he in a big debt? Provide analysis and afterwards a very short summary saying: Business with this company is recomeended or not'
             }],
 
             'toolConfig': {
@@ -260,9 +259,6 @@ def main():
 
         for tool_output_key, tool_output_value in tool_outputs.items():
             st.write(f"**{tool_output_key}**: {tool_output_value}")
-
-
-
 
 if __name__ == "__main__":
     main()

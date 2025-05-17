@@ -1,15 +1,94 @@
 import streamlit as st
 import boto3
 import uuid
-from botocore.exceptions import NoCredentialsError
+from botocore.exceptions import NoCredentialsError, ClientError
 import os
 from dotenv import load_dotenv
 import time
 from concurrent.futures import ThreadPoolExecutor
+import random
 
 load_dotenv(override=True)
 
-# Configuration
+
+# ─── Page Configuration ───────────────────────────────────────────────────────
+st.set_page_config(
+    page_title="OCR Processor (Parallel)",
+    page_icon="📄",
+    layout="wide",
+)
+
+# ─── Custom CSS ───────────────────────────────────────────────────────────────
+st.markdown("""
+    <style>
+    /* Overall background & containers */
+    .stApp {
+        background-color: #f5f7fa;
+        color: #273240;
+    }
+    .reportview-container .main .block-container {
+        padding: 2rem 3rem;
+    }
+
+    /* Header styling */
+    .header {
+        background: linear-gradient(90deg, #eaf2fb 0%, #ffffff 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+    }
+    .header h1 {
+        color: #007acc;
+        font-size: 2.5rem;
+        margin: 0;
+    }
+    .header p {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #495057;
+    }
+
+    /* Card containers for results */
+    .card {
+        background: #ffffff;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1rem;
+    }
+    .card h3 {
+        color: #007acc;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Button tweaks */
+    .stButton>button {
+        background-color: #ffb629;
+        color: #ffffff;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        border-radius: 5px;
+    }
+    .stButton>button:hover {
+        background-color: #e09e22;
+        color: #fff;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
+# ─── App Header ──────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="header">
+  <h1>OCR Processor (Parallel)</h1>
+  <p>Upload your balance sheet (“rozvaha”) or income statement (“vysledovka”) PDFs for instant analysis</p>
+</div>
+""", unsafe_allow_html=True)
+
+
+# ─── AWS Clients ─────────────────────────────────────────────────────────────
 BUCKET_NAME = "bucket-dabada"
 
 # S3 and Textract clients
@@ -172,93 +251,104 @@ def process_file(file):
     except Exception as e:
         return filename, {"error": str(e)}
 
-def main():
-    st.title("OCR Processor (Parallel)")
-    st.write("Upload your PDFs (rozvaha or vysledovka)")
-
-    uploaded_files = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
-
-    if uploaded_files:
-        st.write(f"{len(uploaded_files)} file(s) selected. Processing in parallel...")
-
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(process_file, uploaded_files))
-
-        for filename, result in results:
-            new_filename = '_'.join(filename.split('_')[1:])
-            st.subheader(f"Results for {new_filename}:")
-            if "error" in result:
-                st.error(result["error"])
+def safe_converse(client, payload, max_retries=5, base_delay=1):
+    retries = 0
+    while retries < max_retries:
+        try:
+            response = client.converse(**payload)
+            return response
+        except ClientError as e:
+            if e.response['Error']['Code'] == "ThrottlingException":
+                wait_time = base_delay * (2 ** retries) + random.uniform(0, 0.5)
+                time.sleep(wait_time)
+                retries += 1
             else:
-                for key, value in result.items():
-                    st.write(f"**{key}**: {value}")
+                raise
+    raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
-        results_ = {
-            filename: result for filename, result in results
-        }
+def main():
+    uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
+    if not uploaded:
+        return
 
-        payload = {
-            'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
-            'inferenceConfig':{
-                'temperature': 0.3,
-                'maxTokens': 4096,
-            },
-            'system': [{
-                'text': 'You are a financial analyst. You will be given a list of financial data from a company. Your task is to analyze the data and provide insights whether the company will be a luqid and profitable b2b partner for us. Will he pay invoices, isnt he in a big debt? Provide analysis and afterwards a very short summary saying: Business with this company is recomeended or not'
-            }],
+    st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
 
-            'toolConfig': {
-                'tools': [
-                    {
-                        'toolSpec': {
-                            'name': 'financial_analysis_tool',
-                            'description': 'This tool provides financial analysis based on the data provided.',
-                            'inputSchema': {
-                                'json': {
-                                    'type': 'object',
-                                    'properties': {
-                                        'financial_analysis': {
-                                            'type': 'string',
-                                            'description': 'The financial analysis result.'
-                                        },
-                                        'recommendations': {
-                                            'type': 'string',
-                                            'description': 'Recommendations based on the financial analysis.'
-                                        }
+    with ThreadPoolExecutor() as ex:
+        results = list(ex.map(process_file, uploaded))
+
+    # Display each result in a card
+    #for filename, result in results:
+    #    display_name = "_".join(filename.split("_")[1:])
+    #    if "error" in result:
+    #       st.markdown(f"<div class='card'><h3>❗ {display_name}</h3><p>{result['error']}</p></div>", unsafe_allow_html=True)
+    #    else:
+    #        st.markdown(f"<div class='card'><h3>✅ Results for {display_name}</h3></div>", unsafe_allow_html=True)
+    #        for k, v in result.items():
+    #            st.write(f"**{k}**: {v}")
+
+    payload = {
+        'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
+        'inferenceConfig':{
+            'temperature': 0.3,
+            'maxTokens': 4096,
+        },
+        'system': [{
+            'text': 'You are a financial analyst. Analyze the provided financial data and determine if the company is liquid, profitable, and not heavily in debt. Based on your findings, assess whether they are likely to pay invoices on time. Conclude with a short summary: Business with this company is recommended or not recommended.'
+        }],
+
+        'toolConfig': {
+            'tools': [
+                {
+                    'toolSpec': {
+                        'name': 'financial_analysis_tool',
+                        'description': 'This tool provides financial analysis based on the data provided.',
+                        'inputSchema': {
+                            'json': {
+                                'type': 'object',
+                                'properties': {
+                                    'financial_analysis': {
+                                        'type': 'string',
+                                        'description': 'The financial analysis result.'
                                     },
-                                    'required': ['financial_analysis', 'recommendations']
-                                }
+                                    'recommendations': {
+                                        'type': 'string',
+                                        'description': 'Recommendations based on the financial analysis.'
+                                    }
+                                },
+                                'required': ['financial_analysis', 'recommendations']
                             }
                         }
                     }
-                ],
-                'toolChoice': {
-                    'tool': {
-                        'name': 'financial_analysis_tool',
-                    }
                 }
-            },
-            'messages': [{
-                'role': 'user',
-                'content': [
-                    {
-                        'text': f'<content>{str(results)}</content>',
-                    },
-                    {
-                        'text': 'Please use the financial analysis tool to analyze the data within <content> tags and provide insights.',
-                    }
-                ]
-            }]
-        }
+            ],
+            'toolChoice': {
+                'tool': {
+                    'name': 'financial_analysis_tool',
+                }
+            }
+        },
+        'messages': [{
+            'role': 'user',
+            'content': [
+                {
+                    'text': f'<content>{str(results)}</content>',
+                },
+                {
+                    'text': 'Please use the financial analysis tool to analyze the data within <content> tags and provide insights.',
+                }
+            ]
+        }]
+    }
 
-        response = bedrock_runtime.converse(**payload)
+    response = safe_converse(bedrock_runtime, payload)
+    tool_out = response['output']['message']['content'][0]['toolUse']['input']
 
-        tool_outputs = response['output']['message']['content'][0]['toolUse']['input']
+    st.markdown("<div class='card'><h3>💡 Financial Analysis Tool Output</h3></div>", unsafe_allow_html=True)
+    for key, val in tool_out.items():
+        st.write(f"**{key}**: {val}")
 
-        st.subheader("Financial Analysis Tool Output:")
-
-        for tool_output_key, tool_output_value in tool_outputs.items():
-            st.write(f"**{tool_output_key}**: {tool_output_value}")
+    #for tool_output_key, tool_output_value in tool_outputs.items():
+    #    st.write(f"**{tool_output_key}**: {tool_output_value}")
 
 if __name__ == "__main__":
     main()

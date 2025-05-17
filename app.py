@@ -10,9 +10,36 @@ import random
 import json  # added import for json handling
 import base64
 from datetime import datetime
-
+from scraper import scraper
+import functools
 load_dotenv(override=True)
+def exponential_backoff(max_retries=5, base_delay=1, max_delay=60):
+    """
+    Decorator to retry a function with exponential backoff on specific exceptions.
 
+    :param max_retries: Maximum number of retries before giving up.
+    :param base_delay: Initial delay in seconds.
+    :param max_delay: Maximum delay between retries.
+    :param exceptions: Tuple of exception classes to catch.
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            attempt = 0
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt >= max_retries:
+                        raise
+                    delay = min(max_delay, base_delay * (2 ** attempt))
+                    jitter = random.uniform(0, 0.5 * delay)  # Optional: add jitter to reduce collisions
+                    total_delay = delay + jitter
+                    print(f"Caught {e.__class__.__name__}: Retrying in {total_delay:.2f} seconds (attempt {attempt + 1})")
+                    time.sleep(total_delay)
+                    attempt += 1
+        return wrapper
+    return decorator
 # ─── AWS Clients ─────────────────────────────────────────────────────────────
 BUCKET_NAME = "bucket-dabada"
 
@@ -41,9 +68,45 @@ def upload_to_s3(file, bucket, filename):
         return False, "AWS credentials not found. Please configure your environment."
     except Exception as e:
         return False, f"Failed to upload {filename}: {e}"
+    
+@exponential_backoff(max_retries=5, base_delay=1, max_delay=60)
+def summarize_scrape(scrape_json, company_name):
+    """
+    Summarize the scraped data.
+    :param scrape_json: The JSON data from the web scraping.
+    :return: A summary of the scraped data.
+    """
+    scrape_response = bedrock_runtime.converse(
+        ** {
+                    'modelId':'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+        'inferenceConfig':{
+            'temperature': 0.3,
+            'maxTokens': 4096,
+        },
+        'messages': [{
+            'role': 'user',
+            'content': [
+                {
+                    'text': (
+                        f'Based on provided web scraping data about company {company_name}, '
+                        f'please analyze the following information and provide a summary: '
+                        f'{json.dumps(scrape_json, indent=2)}'
+                    )
+                }
+            ]
+
+        }]
+        }
+    )
+
+    scrape_out = scrape_response['output']['message']['content'][0]['text']
+
+    return scrape_out
 
 def process_file(file):
     file_id = str(uuid.uuid4())
+    file_name = file.name
+    company_name = file_name.split('_')[0]
     filename = f"{file_id}_{file.name}"
     success, msg = upload_to_s3(file, BUCKET_NAME, filename)
 
@@ -142,8 +205,7 @@ def process_file(file):
     }
 ] # Keep same as original
     else:
-        return filename, {"error": "Invalid file name. Must contain 'rozvaha' or 'vysledovka'."}
-
+        raise ValueError("Unsupported file type. Only 'rozvaha' and 'vysledovka' are supported.")
     try:
         response = textract.start_document_analysis(
             DocumentLocation={'S3Object': {'Bucket': BUCKET_NAME, 'Name': f"inputs/{filename}"}},
@@ -170,11 +232,11 @@ def process_file(file):
                         for b in blocks:
                             if b['BlockType'] == 'QUERY_RESULT' and b['Id'] == rel_id:
                                 result[block['Query']['Text']] = b['Text']
-            return filename, result
+            return filename, company_name, result
         else:
-            return filename, {"error": "Textract job failed."}
+            raise Exception(f"Textract job failed with status: {status}")
     except Exception as e:
-        return filename, {"error": str(e)}
+        raise Exception(f"Error processing file {filename}: {e}")
 
 def safe_converse(client, payload, max_retries=5, base_delay=1):
     retries = 0
@@ -192,43 +254,22 @@ def safe_converse(client, payload, max_retries=5, base_delay=1):
     raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
 def main():
-    st.title("OCR Company Analyser")  # Added title within main()
+    st.title("OCR Processor (Parallel)")  # Added title within main()
     uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
     if not uploaded:
         return
 
     # Use native Streamlit info box instead of a CSS card
     st.info(f"📂 {len(uploaded)} file(s) selected. Processing…")
-    
-    with st.spinner("Uploading files and processing..."):
-        with ThreadPoolExecutor() as ex:
-            results = list(ex.map(process_file, uploaded))
-    
-    with st.spinner("Waiting for analysis results..."):
-        # Placeholder spinner while analysis completes (e.g. polling or waiting)
-        time.sleep(2)
-    
-#     for res in results:
-#         filename, _ = res
-#         print('filename:', filename)
-#         print(_)
-#         pdf_content = (
-#             s3.get_object(
-#                 Bucket=BUCKET_NAME,
-#                 Key=f"inputs/{filename}",
-#             )
-#             ['Body'].read()
-#         )
-#         base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
-#
-#         with st.expander(f"File: {filename}", expanded=False):
-#             st.markdown(
-# f'''
-# <iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25"
-# width="500" height="600" type="application/pdf"></iframe>
-# ''',
-# unsafe_allow_html=True
-# )
+
+
+    st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
+
+    with ThreadPoolExecutor() as ex:
+        results = list(ex.map(process_file, uploaded))
+
+        for res in results:
+            filename, company_name,_ = res
     
     # Save raw analysis results to a local json file and upload to S3
     analysis_filename = f"analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
@@ -240,7 +281,10 @@ def main():
     except Exception as e:
         st.error(f"Failed to upload raw analysis file: {e}")
     
+    scrape_json = scraper(company_name)
+    scrape_out = summarize_scrape(scrape_json, company_name)
 
+    st.write(f"Scraped data summary: {scrape_out}")
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
         'inferenceConfig':{
@@ -286,7 +330,10 @@ def main():
             'role': 'user',
             'content': [
                 {
-                    'text': f'<content>{str(results)}</content>',
+                    'text': f'<content>Financial Statements: {str(results)}</content>',
+                },
+                {
+                    'text': f'<content>Web scraped Results: {scrape_out}</content>',
                 },
                 {
                     'text': 'Please use the financial analysis tool to analyze the data within <content> tags and provide insights.',

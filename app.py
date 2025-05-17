@@ -8,6 +8,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import random
 from config import set_page_config, inject_css
+import json  # added import for json handling
 
 # Set page configuration and inject custom CSS
 set_page_config()
@@ -202,7 +203,17 @@ def main():
 
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
-
+    
+    # Save raw analysis results to a local json file and upload to S3
+    analysis_filename = f"analysis_{str(uuid.uuid4())}.json"
+    with open(analysis_filename, "w") as f:
+        json.dump(results, f)
+    try:
+        s3.upload_file(analysis_filename, BUCKET_NAME, f"raw_analysis/{analysis_filename}")
+        st.success(f"Raw analysis file {analysis_filename} uploaded to S3.")
+    except Exception as e:
+        st.error(f"Failed to upload raw analysis file: {e}")
+    
     # Display each result in a card with expandable details
     for filename, result in results:
         display_name = "_".join(filename.split("_")[1:])

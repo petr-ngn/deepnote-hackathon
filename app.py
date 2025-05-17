@@ -9,7 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import random
 from config import set_page_config, inject_css
 import json  # added import for json handling
-
+import base64  # added import for base64 encoding
 # Set page configuration and inject custom CSS
 set_page_config()
 inject_css()
@@ -203,6 +203,27 @@ def main():
 
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
+
+        for res in results:
+            filename, _ = res
+
+            pdf_content = (
+                s3.get_object(
+                    Bucket=BUCKET_NAME,
+                    Key=f"inputs/{filename}",
+                )
+                ['Body'].read()
+            )
+            base64_pdf = base64.b64encode(pdf_content).decode('utf-8')
+
+            with st.expander(f"File: {filename}", expanded=False):
+                st.markdown(
+    f'''
+    <iframe src="data:application/pdf;base64,{base64_pdf}#zoom=3.25" 
+    width="500" height="600" type="application/pdf"></iframe>
+    ''',
+    unsafe_allow_html=True
+)
     
     # Save raw analysis results to a local json file and upload to S3
     analysis_filename = f"analysis_{str(uuid.uuid4())}.json"
@@ -214,12 +235,6 @@ def main():
     except Exception as e:
         st.error(f"Failed to upload raw analysis file: {e}")
     
-    # Display each result in a card with expandable details
-    for filename, result in results:
-        display_name = "_".join(filename.split("_")[1:])
-        with st.expander(f"File: {display_name}", expanded=False):
-            st.write("Details hidden")
-
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
         'inferenceConfig':{

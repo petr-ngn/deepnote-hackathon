@@ -1,15 +1,22 @@
 # Deepnote Hackhaton Project
 
+## Our use case: AI Powered B2B Fintech company that needs to assess potential clients
+The goal is using AI to analyze financial statements and assess the likelihood of companies paying their invoices on time.
+
 ## Overview
 This project leverages a finetuned AWS OCR model to extract financial data from scanned PDFs, a web scraping LLM to gather supplementary company information, and a financial analysis LLM to evaluate liquidity, profitability, and debt. The combined analysis helps determine if a company is likely to pay invoices on time.
+
+![Project Diagram](hackathon.drawio.png)
 
 ## Features
 - **OCR Processing:**  
   Extracts key financial metrics from balance sheets ("rozvaha") and income statements ("vysledovka") using AWS Textract with custom queries.
-- **Web Scraping with LLM:**  
-  Enhances financial data by scraping online resources for additional insights about the company.
+- **LLM Integration:**  
+  Utilizing Amazong Bedrock to perform prompt engineering, tool use, function calling, summarization, etc.
+- **Web Scraping with Tavily API:**  
+  Is a search engine specializing to enhance AI apps. Output of Tavily search is futher enhanced by Anthropic Claude Sonnet to provide a comprehensive overview of the company.
 - **Financial Analysis:**  
-  Uses a finetuned LLM to assess financial health and generate recommendations. Important parts of the output are highlighted.
+  Using Anthropic Claude Sonnet to assess financial health and generate recommendations.
 - **AWS S3 Integration:**  
   Stores input files and raw analysis results in an S3 bucket.
 - **Interactive Interface:**  
@@ -31,8 +38,9 @@ This project leverages a finetuned AWS OCR model to extract financial data from 
 - **scraper.py:** Contains the code for web scraping utilized by the LLM.
 - **README.md:** Project documentation.
 
-## Contributing
-Contributions and improvements are welcome. Please follow the standard fork/pull request workflow for submitting enhancements or bug fixes.
+## Next steps
+Large scale finetuning with more training and annotated data for more accurate and robust results.
+Expansion to other languages and financial documents.
+Utilize multi-agent AI architectures in order to be able to provide more complex and comprehensive analysis.
+More proper document classification.
 
-## License
-This project is available under the MIT License.

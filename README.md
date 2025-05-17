@@ -39,8 +39,10 @@ This project leverages a finetuned AWS OCR model to extract financial data from 
 - **README.md:** Project documentation.
 
 ## Next steps
-Large scale finetuning with more training and annotated data for more accurate and robust results.
-Expansion to other languages and financial documents.
-Utilize multi-agent AI architectures in order to be able to provide more complex and comprehensive analysis.
-More proper document classification.
+- Large scale finetuning with more training and annotated data for more accurate and robust results.
+- Expansion to other languages and different financial documents (cash flow, annual reports, ...).
+- Utilize multi-agent AI architectures in order to be able to provide more complex and comprehensive analysis.
+- More proper document classification.
+- Provide user with additional Macroeconomic data and insight about the industry.
+
 

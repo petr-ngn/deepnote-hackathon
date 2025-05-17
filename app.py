@@ -254,19 +254,20 @@ def safe_converse(client, payload, max_retries=5, base_delay=1):
     raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
 def main():
-    st.title("OCR Processor (Parallel)")  # Added title within main()
+    st.title("OCR Company Analyser")
     uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
     if not uploaded:
         return
 
-    # Use native Streamlit info box instead of a CSS card
     st.info(f"📂 {len(uploaded)} file(s) selected. Processing…")
+    
+    # Added spinner for uploading files
+    with st.spinner("Uploading files..."):
+        with ThreadPoolExecutor() as ex:
+            results = list(ex.map(process_file, uploaded))
 
-
-    st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
-
-    with ThreadPoolExecutor() as ex:
-        results = list(ex.map(process_file, uploaded))
+    # with ThreadPoolExecutor() as ex:
+    #     results = list(ex.map(process_file, uploaded))
 
         for res in results:
             filename, company_name,_ = res
@@ -292,7 +293,7 @@ def main():
             'maxTokens': 4096,
         },
         'system': [{
-            'text': 'You are a financial analyst. Analyze the provided financial data and determine if the company is liquid, profitable, and not heavily in debt. Based on your findings, assess whether they are likely to pay invoices on time. Conclude with a short summary: Business with this company is recommended or not recommended.'
+            'text': 'You are a financial analyst. Analyze the provided financial data and determine if the company is liquid, profitable, and not heavily in debt. Based on your findings, assess whether they are likely to pay invoices on time. Conclude with a short summary: Business with this company is recommended or not recommended. Use Bold and CAPS LOCK for making important parts of text highlighted. Especially the final recommendation.',
         }],
 
         'toolConfig': {
@@ -353,4 +354,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

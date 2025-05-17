@@ -7,12 +7,8 @@ from dotenv import load_dotenv
 import time
 from concurrent.futures import ThreadPoolExecutor
 import random
-from config import set_page_config, inject_css
 import json  # added import for json handling
 import base64
-# Set page configuration and inject custom CSS
-set_page_config()
-inject_css()
 
 load_dotenv(override=True)
 
@@ -195,10 +191,17 @@ def safe_converse(client, payload, max_retries=5, base_delay=1):
     raise Exception("Max retries exceeded for Converse operation due to throttling.")
 
 def main():
+    st.title("OCR Processor (Parallel)")  # Added title within main()
     uploaded = st.file_uploader("Choose PDF files", type="pdf", accept_multiple_files=True)
     if not uploaded:
         return
 
+    # Use native Streamlit info box instead of a CSS card
+    st.info(f"📂 {len(uploaded)} file(s) selected. Processing…")
+
+    with st.spinner("Processing files..."):
+        with ThreadPoolExecutor() as ex:
+            results = list(ex.map(process_file, uploaded))
     st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
     for file in uploaded:
         bytes_data = file.read()
@@ -209,13 +212,13 @@ def main():
                                 <iframe src="data:application/pdf;base64,{base64_bytes}#zoom=3.0" 
                                 width="500" height="600" type="application/pdf"></iframe>
                                 ''',
-                                unsafe_allow_html=True      
+                                unsafe_allow_html=True
             )
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
-    
+
     # Save raw analysis results to a local json file and upload to S3
-    analysis_filename = f"analysis_{str(uuid.uuid4())}.json"
+    analysis_filename = f"analysis_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     with open(analysis_filename, "w") as f:
         json.dump(results, f)
     try:
@@ -223,9 +226,6 @@ def main():
         st.success(f"Raw analysis file {analysis_filename} uploaded to S3.")
     except Exception as e:
         st.error(f"Failed to upload raw analysis file: {e}")
-    
-    # Display each result in a card with expandable details
-
 
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
@@ -281,15 +281,15 @@ def main():
         }]
     }
 
-    response = safe_converse(bedrock_runtime, payload)
+    with st.spinner("Model is thinking..."):
+        response = safe_converse(bedrock_runtime, payload)
     tool_out = response['output']['message']['content'][0]['toolUse']['input']
 
-    st.markdown("<div class='card'><h3>💡 Financial Analysis Tool Output</h3></div>", unsafe_allow_html=True)
+    # Use native Streamlit header instead of a CSS card for Tool Output
+    st.header("💡 Financial Analysis Tool Output")
     for key, val in tool_out.items():
         st.write(f"**{key}**: {val}")
 
-    #for tool_output_key, tool_output_value in tool_outputs.items():
-    #    st.write(f"**{tool_output_key}**: {tool_output_value}")
-
 if __name__ == "__main__":
     main()
+

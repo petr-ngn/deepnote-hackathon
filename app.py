@@ -200,9 +200,7 @@ def main():
     # Use native Streamlit info box instead of a CSS card
     st.info(f"📂 {len(uploaded)} file(s) selected. Processing…")
 
-    with st.spinner("Processing files..."):
-        with ThreadPoolExecutor() as ex:
-            results = list(ex.map(process_file, uploaded))
+
     st.markdown(f"<div class='card'><h3>📂 {len(uploaded)} file(s) selected. Processing…</h3></div>", unsafe_allow_html=True)
 
     with ThreadPoolExecutor() as ex:
@@ -210,7 +208,8 @@ def main():
 
         for res in results:
             filename, _ = res
-
+            print('filename:', filename)
+            print(_)
             pdf_content = (
                 s3.get_object(
                     Bucket=BUCKET_NAME,
@@ -239,11 +238,6 @@ def main():
     except Exception as e:
         st.error(f"Failed to upload raw analysis file: {e}")
     
-    # Display each result in a card with expandable details
-    for filename, result in results:
-        display_name = "_".join(filename.split("_")[1:])
-        with st.expander(f"File: {display_name}", expanded=False):
-            st.write("Details hidden")
 
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',

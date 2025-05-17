@@ -7,86 +7,13 @@ from dotenv import load_dotenv
 import time
 from concurrent.futures import ThreadPoolExecutor
 import random
+from config import set_page_config, inject_css
+
+# Set page configuration and inject custom CSS
+set_page_config()
+inject_css()
 
 load_dotenv(override=True)
-
-
-# ─── Page Configuration ───────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="OCR Processor (Parallel)",
-    page_icon="📄",
-    layout="wide",
-)
-
-# ─── Custom CSS ───────────────────────────────────────────────────────────────
-st.markdown("""
-    <style>
-    /* Overall background & containers */
-    .stApp {
-        background-color: #f5f7fa;
-        color: #273240;
-    }
-    .reportview-container .main .block-container {
-        padding: 2rem 3rem;
-    }
-
-    /* Header styling */
-    .header {
-        background: linear-gradient(90deg, #eaf2fb 0%, #ffffff 100%);
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.03);
-    }
-    .header h1 {
-        color: #007acc;
-        font-size: 2.5rem;
-        margin: 0;
-    }
-    .header p {
-        margin: 0;
-        font-size: 1.1rem;
-        color: #495057;
-    }
-
-    /* Card containers for results */
-    .card {
-        background: #ffffff;
-        padding: 1rem 1.5rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        margin-bottom: 1rem;
-    }
-    .card h3 {
-        color: #007acc;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Button tweaks */
-    .stButton>button {
-        background-color: #ffb629;
-        color: #ffffff;
-        border: none;
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        border-radius: 5px;
-    }
-    .stButton>button:hover {
-        background-color: #e09e22;
-        color: #fff;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
-# ─── App Header ──────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="header">
-  <h1>OCR Processor (Parallel)</h1>
-  <p>Upload your balance sheet (“rozvaha”) or income statement (“vysledovka”) PDFs for instant analysis</p>
-</div>
-""", unsafe_allow_html=True)
-
 
 # ─── AWS Clients ─────────────────────────────────────────────────────────────
 BUCKET_NAME = "bucket-dabada"
@@ -195,7 +122,7 @@ def process_file(file):
 ]  # Keep same as original
     elif 'vysledovka' in filename:
         adapter_id = '0927eda0d229'
-        queries = queries = [
+        queries = [
     {
         "Text": "bezny provozni vysledek hospodareni",
         "Alias": "OPERATING_PROFIT",
@@ -276,15 +203,11 @@ def main():
     with ThreadPoolExecutor() as ex:
         results = list(ex.map(process_file, uploaded))
 
-    # Display each result in a card
-    #for filename, result in results:
-    #    display_name = "_".join(filename.split("_")[1:])
-    #    if "error" in result:
-    #       st.markdown(f"<div class='card'><h3>❗ {display_name}</h3><p>{result['error']}</p></div>", unsafe_allow_html=True)
-    #    else:
-    #        st.markdown(f"<div class='card'><h3>✅ Results for {display_name}</h3></div>", unsafe_allow_html=True)
-    #        for k, v in result.items():
-    #            st.write(f"**{k}**: {v}")
+    # Display each result in a card with expandable details
+    for filename, result in results:
+        display_name = "_".join(filename.split("_")[1:])
+        with st.expander(f"File: {display_name}", expanded=False):
+            st.write("Details hidden")
 
     payload = {
         'modelId':'us.anthropic.claude-3-5-sonnet-20241022-v2:0',

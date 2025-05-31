@@ -46,13 +46,12 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-        # clone the badges branch in a separate directory
-        git clone --single-branch --branch badges https://github.com/${{ github.repository }} badge-repo
+        git clone --single-branch --branch badges https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} badge-repo
         cd badge-repo
 
-        # copy new badge file
         cp ../pylint-badge.json pylint-badge.json
 
         git add pylint-badge.json
         git commit -m "Update pylint badge" || echo "No changes to commit"
         git push origin badges
+

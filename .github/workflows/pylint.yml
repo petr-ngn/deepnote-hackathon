@@ -1,0 +1,40 @@
+name: Poetry Pylint Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install --no-root
+
+    - name: Run PyLint and update badge
+      uses: Silleellie/pylint-github-action@v2.1
+      with:
+        lint-path: src
+        python-version: '3.13'
+        badge-text: "PyLint Score"
+        color-bad-score: "red"
+        color-ok-score: "orange"
+        color-good-score: "yellow"
+        color-perfect-score: "brightgreen"

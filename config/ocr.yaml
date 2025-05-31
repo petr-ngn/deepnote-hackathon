@@ -1,0 +1,83 @@
+balance_sheet:
+  - Text: "aktiva celkem bezne netto"
+    Alias: "ASSETS_TOTAL"
+    Pages:
+      - "*"
+
+  - Text: "stala aktiva bezne netto"
+    Alias: "FIXED_ASSETS"
+
+  - Text: "obezna aktiva bezne netto"
+    Alias: "CURRENT_ASSETS"
+    Pages:
+      - "*"
+
+  - Text: "zasoby bezne netto"
+    Alias: "INVENTORIES"
+    Pages:
+      - "*"
+
+  - Text: "pohledavky bezne netto"
+    Alias: "RECEIVABLES"
+    Pages:
+      - "*"
+
+  - Text: "penezni prostredky bezne netto"
+    Alias: "CASH_AND_CASH_EQUIVALENTS"
+    Pages:
+      - "*"
+
+  - Text: "vlastni kapital bezne"
+    Alias: "EQUITY"
+    Pages:
+      - "*"
+
+  - Text: "zakladni kapital bezne"
+    Alias: "REGISTERED_CAPITAL"
+    Pages:
+      - "*"
+
+  - Text: "vysledek hospodareni minulych let bezne"
+    Alias: "RETAINED_EARNINGS_PREVIOUS_YEARS"
+    Pages:
+      - "*"
+
+  - Text: "vysledek hospodareni bezneho ucetniho obdobi bezne"
+    Alias: "PROFIT_LOSS_CURRENT_PERIOD"
+    Pages:
+      - "*"
+
+  - Text: "cizi zdroje bezne"
+    Alias: "LIABILITIES"
+    Pages:
+      - "*"
+
+  - Text: "rezervy bezne"
+    Alias: "PROVISIONS"
+    Pages:
+      - "*"
+
+  - Text: "zavazky bezne"
+    Alias: "PAYABLES"
+    Pages:
+      - "*"
+
+
+profit_loss:
+  - Text: "bezny provozni vysledek hospodareni"
+    Alias: "OPERATING_PROFIT"
+    Pages:
+      - "*"
+
+  - Text: "bezny vysledek hospodareni pred zdanenim"
+    Alias: "PROFIT_BEFORE_TAXES"
+
+  - Text: "bezny vysledek hospodareni po zdaneni"
+    Alias: "PROFIT_AFTER_TAXES"
+    Pages:
+      - "*"
+
+  - Text: "bezny cisty obrat za ucetni obdobi"
+    Alias: "NET_TURNOVER"
+    Pages:
+      - "*"

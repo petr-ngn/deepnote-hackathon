@@ -1,0 +1,8 @@
+title: "AI-Powered OCR Financial Analyzer"
+layout: "wide"
+menu_items:
+  "Get help": "https://github.com/petr-ngn/deepnote-hackhaton"
+  About: |
+    This application uses AI to analyze financial documents and extract key information.
+    
+    Authors: Petr Nguyen, Samuel Kruzek, Simona Dohova

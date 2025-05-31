@@ -1,0 +1,12 @@
+url: "https://api.tavily.com/search"
+headers:
+  "Content-Type": "application/json"
+  Accept: "application/json"
+
+payload:
+  search_depth: "advanced"
+  include_images: false
+  include_answer: false
+  include_raw_content: false
+  max_results: 100
+  exclude_domains: []

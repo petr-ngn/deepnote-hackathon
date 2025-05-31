@@ -87,7 +87,7 @@ That's why we've decided to deal with such issues in the following way, as it wa
 -  each document has to folow this naming convention: `<company_name>_<document_type>_<year>.pdf`
   - e.g., `twsa_rozvaha_2020.pdf`, `twsa_balancesheet_2020.pdf`, or `twsa_vysledovka_2020.pdf`, `twsa_profitloss_2020.pdf`.
 
-In `.pdf_examples/` directory are uploaded PDF examples of TWSA company where had been used during demo presentation, so feel free to use them too and uploaded them into our app!
+In `.pdf_examples/` directory are uploaded PDF examples of TWSA company which had been used during demo presentation, so feel free to use them too and uploaded them into our app!
 
 App interface:
 <p align="center">

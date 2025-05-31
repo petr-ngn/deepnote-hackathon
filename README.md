@@ -89,4 +89,26 @@ That's why we've decided to deal with such issues in the following way, as it wa
 
 In `.pdf_examples/` directory are uploaded PDF examples of TWSA company where had been used during demo presentation, so feel free to use them too and uploaded them into our app!
 
+App interface:
+<p align="center">
+   <img src=".github/imgs/01.png" width="90%">
+</p>
 
+PDF's upload and OCR:
+<p align="center">
+   <img src=".github/imgs/02.png" width="90%">
+</p>
+
+
+LLM-based web scraping:
+<p align="center">
+   <img src=".github/imgs/03.png" width="90%">
+</p>
+<p align="center">
+   <img src=".github/imgs/04.png" width="90%">
+</p>
+
+LLM-based Financial Analysis utilizing both OCR results and web scraped results:
+<p align="center">
+   <img src=".github/imgs/05.png" width="90%">
+</p>

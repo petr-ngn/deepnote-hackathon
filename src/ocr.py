@@ -91,16 +91,37 @@ class OCR:
         )
 
         # rozvaha (CZ) = balance sheet (EN)
-        if "rozvaha" in attrs['file_name'].lower():
+        if any(
+            keyword in attrs['file_name'].lower() for keyword in
+            [
+                'rozvaha',
+                'balancesheet',
+                'bsheet',
+                'balance_sheet',
+            ]
+        ):
             adapter_id = os.environ["TEXTRACT_ADAPTER_BALANCE_SHEET_ID"]
-            queries = self.config['balance_sheet']
             doc_type = "balance_sheet"
+            queries = self.config[doc_type]
 
         # vysledovka (CZ) = profit and loss statement (EN)
-        elif "vysledovka" in attrs['file_name'].lower():
+        elif any(
+            keyword in attrs['file_name'].lower() for keyword in
+            [
+                'vysledovka',
+                'income_statement',
+                'incomestatement',
+                'profit_loss',
+                'profitandloss',
+                'profit_and_loss'
+                '_pnl_',
+                '_pl_',
+            ]
+        ):
             adapter_id = os.environ["TEXTRACT_ADAPTER_PROFIT_LOSS_ID"]
-            queries = self.config['profit_loss']
             doc_type = "profit_loss"
+            queries = self.config[doc_type]
+
         else:
             raise TypeError(f"Unsupported file type: {attrs['file_name']}")
 

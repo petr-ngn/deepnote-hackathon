@@ -17,8 +17,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'  # Change to match your pyproject.toml
-
+        python-version: '3.13'
+  
     - name: Install Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -

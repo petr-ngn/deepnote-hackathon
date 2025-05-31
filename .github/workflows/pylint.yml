@@ -28,6 +28,7 @@ jobs:
       run: |
         poetry install --no-root
 
+
     - name: Run pylint and extract score
       id: pylint
       run: |
@@ -35,11 +36,12 @@ jobs:
         if [ -n "$FILES" ]; then
           SCORE=$(poetry run pylint --fail-under=0 --score=y --output-format=text $FILES | tee pylint-output.txt | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
           echo "Pylint score: $SCORE"
-          echo "{\"label\": \"pylint\", \"message\": \"$SCORE\", \"color\": \"blue\"}" > pylint-badge.json
+          echo "{\"schemaVersion\": 1, \"label\": \"pylint\", \"message\": \"$SCORE\", \"color\": \"blue\"}" > pylint-badge.json
         else
           echo "No Python files to lint."
-          echo "{\"label\": \"pylint\", \"message\": \"n/a\", \"color\": \"lightgrey\"}" > pylint-badge.json
+          echo "{\"schemaVersion\": 1, \"label\": \"pylint\", \"message\": \"n/a\", \"color\": \"lightgrey\"}" > pylint-badge.json
         fi
+
 
     - name: Push badge to badges branch
       run: |

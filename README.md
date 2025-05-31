@@ -36,14 +36,46 @@ This project leverages a finetuned AWS OCR model to extract financial data from 
 - Document classification (currently based on "regex" of PDF file names).
 - Provide user with additional Macroeconomic data and insight about the industry.
 - Asynchronous workflows.
+- Add logging.
 
 ## Set up
+Clone the repository:
 ```bash
+git clone git@github.com:petr-ngn/deepnote-hackathon.git
+cd deepnote-hackathon
+```
+Fill out your credentials into your `.env` file (AWS access/secret credentials, Tavily API key, S3 bucket name, Textract adapter ID's).
+```bash
+AWS_ACCESS_KEY_ID=XXX
+AWS_SECRET_ACCESS_KEY=XXX
+AWS_REGION=XX
+
+TAVILY_API_KEY=XXX
+
+S3_BUCKET_NAME=XXX
+TEXTRACT_ADAPTER_BALANCE_SHEET_ID=XXX
+TEXTRACT_ADAPTER_PROFIT_LOSS_ID=XXX
+```
+Install Poetry and run the app locally:
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+export PATH="$HOME/.local/bin:$PATH"
+
 poetry install --no-root
+source $(poetry env info --path)/bin/activate
+poetry run streamlit run app.py
 ```
 
+Or just build Docker image and then run the app Docker container locally:
+
 ```bash
-poetry run streamlit run app.py
+docker build -t deepnote-hackathon .
+docker run -p 8501:8501 --env-file .env deepnote-hackathon:latest
+```
+
+Optionally, you can run Pylint to see the quality of the written source codes:
+```bash
+poetry run pylint $(find src -type f -name "*.py")
 ```
 
 

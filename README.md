@@ -1,10 +1,8 @@
 # Deepnote Hackhaton Project - AI-Powered OCR Financial Analyzer
 
-[![Pylint](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml/badge.svg)](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml)
-![Pylint Score](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/petr-ngn/25f35d008e5e1615a2a40a8b6834c8bb/raw/pylint-badge.json)
-
 [![pylint](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml/badge.svg)](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml)
 
+![Pylint](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/petr-ngn/deepnote-hackathon/badges/pylint-badge.json)
 
 
 

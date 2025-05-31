@@ -34,7 +34,7 @@ jobs:
       run: |
         FILES=$(find src -type f -name "*.py" ! -name "__init__.py")
         if [ -n "$FILES" ]; then
-          SCORE=$(poetry run pylint --fail-under=0 --score=y --output-format=text $FILES | tee pylint-output.txt | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
+          SCORE=$(poetry run pylint --fail-under=9.0 --score=y --output-format=text $FILES | tee pylint-output.txt | grep 'Your code has been rated at' | awk '{print $7}' | cut -d'/' -f1)
           echo "Pylint score: $SCORE"
 
           SCORE_FLOAT=$(printf "%.2f" "$SCORE")

@@ -28,22 +28,13 @@ jobs:
       run: |
         poetry install --no-root
 
-    - name: Run pylint and extract score
-      run: |
-        FILES=$(find src -type f -name "*.py" ! -name "__init__.py")
-        if [ -n "$FILES" ]; then
-          poetry run pylint --output-format=text $FILES > pylint-report.txt || true
-          grep 'Your code has been rated at' pylint-report.txt || true
-          SCORE=$(grep 'Your code has been rated at' pylint-report.txt | awk '{print $7}' | cut -d'/' -f1)
-          echo "Pylint score: $SCORE"
-          echo "$SCORE" > pylint_score.txt
-        else
-          echo "No Python files to lint."
-          echo "0.0" > pylint_score.txt
-        fi
-
-    - name: Upload pylint score artifact
-      uses: actions/upload-artifact@v4
+    - name: Run PyLint and update badge
+      uses: Silleellie/pylint-github-action@v2.1
       with:
-        name: pylint-score
-        path: pylint_score.txt
+        lint-path: src
+        python-version: '3.13'
+        badge-text: "PyLint Score"
+        color-bad-score: "red"
+        color-ok-score: "orange"
+        color-good-score: "yellow"
+        color-perfect-score: "brightgreen"

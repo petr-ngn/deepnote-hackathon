@@ -1,4 +1,14 @@
 # Deepnote Hackhaton Project - AI-Powered OCR Financial Analyzer
+
+[![Pylint](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml/badge.svg)](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml)
+![Pylint Score](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/petr-ngn/25f35d008e5e1615a2a40a8b6834c8bb/raw/pylint-badge.json)
+
+[![pylint](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml/badge.svg)](https://github.com/petr-ngn/deepnote-hackathon/actions/workflows/pylint.yml)
+
+
+
+
+
 **Team**: [Petr Nguyen](https://www.linkedin.com/in/petr-ngn/) (Main Developer), [Samuel Kruzek](https://www.linkedin.com/in/samuel-krúžek-63882b226/), [Simona Dohova](https://www.linkedin.com/in/simona-dohová-182427153/)
 
 **Result**: 1st Place + 2,000 USD Prize Money + 30,000 USD DeepNote Credits

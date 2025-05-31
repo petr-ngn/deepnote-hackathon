@@ -1,8 +1,7 @@
-# Deepnote Hackhaton Project
+# Deepnote Hackhaton Project - AI-Powered OCR Financial Analyzer
+**Team**: [Petr Nguyen](https://www.linkedin.com/in/petr-ngn/) (Main Developer), [Samuel Kruzek](https://www.linkedin.com/in/samuel-krúžek-63882b226/), [Simona Dohova](https://www.linkedin.com/in/simona-dohová-182427153/)
 
-## Our use case: AI Powered B2B Fintech company that needs to assess potential clients
-The goal is using AI to analyze financial statements and assess the likelihood of companies paying their invoices on time.
-
+**Result**: 1st Place + 2,000 USD Prize Money + 30,000 USD DeepNote Credits
 ## Overview
 This project leverages a finetuned AWS OCR model to extract financial data from scanned PDFs, a web scraping LLM to gather supplementary company information, and a financial analysis LLM to evaluate liquidity, profitability, and debt. The combined analysis helps determine if a company is likely to pay invoices on time.
 
@@ -22,27 +21,21 @@ This project leverages a finetuned AWS OCR model to extract financial data from 
 - **Interactive Interface:**  
   Built with Streamlit, featuring file upload, spinners for processing states, and a summary table displaying key financial metrics.
 
-## Getting Started
-1. **Setup Environment:**  
-   - Install the required Python packages: `streamlit`, `boto3`, `python-dotenv`, etc.  
-   - Configure AWS credentials and necessary environment variables.
-2. **Run the Application:**  
-   Execute the command `streamlit run app.py` in the project directory.
-3. **Usage:**  
-   - Upload PDF files containing financial statements.  
-   - Follow the interactive prompts as files upload, process, and the LLM executes the analysis.
-   - Review the summary table and detailed financial insights on the web interface.
-
-## Project Structure
-- **app.py:** Main application logic implementing OCR, web scraping, and financial analysis.
-- **scraper.py:** Contains the code for web scraping utilized by the LLM.
-- **README.md:** Project documentation.
-
 ## Next steps
 - Large scale finetuning with more training and annotated data for more accurate and robust results.
 - Expansion to other languages and different financial documents (cash flow, annual reports, ...).
 - Utilize multi-agent AI architectures in order to be able to provide more complex and comprehensive analysis.
-- More proper document classification.
+- Document classification (currently based on "regex" of PDF file names).
 - Provide user with additional Macroeconomic data and insight about the industry.
+- Asynchronous workflows.
+
+## Set up
+```bash
+poetry install --no-root
+```
+
+```bash
+poetry run streamlit run app.py
+```
 
 

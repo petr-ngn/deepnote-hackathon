@@ -1,0 +1,53 @@
+web_scraping:
+  modelId: "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
+  inferenceConfig:
+    temperature: 0.3
+    maxTokens: 4096
+  messages:
+    - role: "user"
+      content:
+        - text: |
+            Based on provided web scraping data about company <<company_name>>, 
+            please analyze the following information and provide a summary: 
+            <<scrape_data>>
+
+
+fin_analyzer:
+  modelId: "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+  inferenceConfig:
+    temperature: 0.3
+    maxTokens: 4096
+  system:
+    - text: |
+        You are a financial analyst.
+        Analyze the provided financial data and determine if the company is liquid, profitable, and not heavily in debt.
+        Based on your findings, assess whether they are likely to pay invoices on time.
+        Conclude with a short summary: Business with this company is recommended or not recommended.
+        Use Bold and CAPS LOCK for making important parts of text highlighted. Especially the final recommendation.
+  toolConfig:
+    tools:
+      - toolSpec:
+          name: "FinancialAnalyzer"
+          description: This tool provides financial analysis based on the company data provided.
+          inputSchema:
+            json:
+              type: "object"
+              properties:
+                financial_analysis:
+                  type: "string"
+                  description: "The company financial analysis result."
+                recommendations:
+                  type: "string"
+                  description: "Recommendations based on the financial analysis."
+              required:
+                - "financial_analysis"
+                - "recommendations"
+    toolChoice:
+      tool:
+        name: "FinancialAnalyzer"
+  messages:
+    - role: "user"
+      content:
+        - text: "<content>Financial Statements: <<ocr_results>></content>"
+        - text: "<content>Web scraped Results: <<llm_scrape_results>></content>"
+        - text: "Please use the FinancialAnalyzer tool to analyze the data within <content> tags and provide insights."

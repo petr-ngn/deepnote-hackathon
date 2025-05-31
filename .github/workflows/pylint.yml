@@ -1,0 +1,38 @@
+name: Poetry Pylint Workflow
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  pylint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'  # Change to match your pyproject.toml
+
+    - name: Install Poetry
+      run: |
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install --no-root
+
+    - name: Run pylint with custom options
+      run: |
+        FILES=$(find src -type f -name "*.py" ! -name "__init__.py")
+        if [ -n "$FILES" ]; then
+          poetry run pylint --fail-under=8.0 --disable=too-few-public-methods $FILES
+        else
+          echo "No Python files to lint."
+        fi
